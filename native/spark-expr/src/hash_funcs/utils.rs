@@ -356,6 +356,7 @@ macro_rules! create_hashes_internal {
                         )?;
                     }
                     _ => {
+                        println!("Huaxin debug: Unsupported dictionary type in hasher : {:?}", col);
                         return Err(DataFusionError::Internal(format!(
                             "Unsupported dictionary type in hasher hashing: {}",
                             col.data_type(),
@@ -364,6 +365,7 @@ macro_rules! create_hashes_internal {
                 },
                 _ => {
                     // This is internal because we should have caught this before.
+                    println!("Huaxin debug: Unsupported data type in hasher : {:?}", col);
                     return Err(DataFusionError::Internal(format!(
                         "Unsupported data type in hasher: {}",
                         col.data_type()

@@ -100,12 +100,12 @@ BUILDER_IMAGE_ARM64="comet-rm-arm64:$IMGTAG"
 BUILDER_IMAGE_AMD64="comet-rm-amd64:$IMGTAG"
 
 # Build the docker image in which we will do the build
-docker build \
-  --platform=linux/arm64 \
-  -t "$BUILDER_IMAGE_ARM64" \
-  --build-arg HAS_MACOS_SDK=${HAS_MACOS_SDK} \
-  --build-arg MACOS_SDK=${MACOS_SDK} \
-  "$SCRIPT_DIR/comet-rm"
+#docker build \
+#  --platform=linux/arm64 \
+#  -t "$BUILDER_IMAGE_ARM64" \
+#  --build-arg HAS_MACOS_SDK=${HAS_MACOS_SDK} \
+#  --build-arg MACOS_SDK=${MACOS_SDK} \
+#  "$SCRIPT_DIR/comet-rm"
 
 docker build \
   --platform=linux/amd64 \
@@ -136,20 +136,20 @@ then
 fi
 
 # ARM64
-echo "Building arm64 binary"
-docker run \
-   --name comet-arm64-builder-container \
-   --memory 24g \
-   --cpus 6 \
-   -it \
-   --platform linux/arm64 \
-   $BUILDER_IMAGE_ARM64 "${REPO}" "${BRANCH}" arm64
+#echo "Building arm64 binary"
+#docker run \
+#   --name comet-arm64-builder-container \
+#   --memory 24g \
+#   --cpus 6 \
+#   -it \
+#   --platform linux/arm64 \
+#   $BUILDER_IMAGE_ARM64 "${REPO}" "${BRANCH}" arm64
 
-if [ $? != 0 ]
-then
-  echo "Building arm64 binary failed."
-  exit 1
-fi
+#if [ $? != 0 ]
+#then
+#  echo "Building arm64 binary failed."
+#  exit 1
+#fi
 
 echo "Building binaries completed"
 echo "Copying to java build directories"
@@ -170,14 +170,14 @@ then
     $JVM_TARGET_DIR/darwin/x86_64/
 fi
 
-mkdir -p $JVM_TARGET_DIR/linux/aarch64
-docker cp \
-  comet-arm64-builder-container:"/opt/comet-rm/comet/native/target/release/libcomet.so" \
-  $JVM_TARGET_DIR/linux/aarch64/
+#mkdir -p $JVM_TARGET_DIR/linux/aarch64
+#docker cp \
+#  comet-arm64-builder-container:"/opt/comet-rm/comet/native/target/release/libcomet.so" \
+#  $JVM_TARGET_DIR/linux/aarch64/
 
 if [ "$HAS_MACOS_SDK" == "true" ]
 then
-  mkdir -p $JVM_TARGET_DIR/linux/aarch64
+  mkdir -p $JVM_TARGET_DIR/darwin/aarch64
   docker cp \
     comet-arm64-builder-container:"/opt/comet-rm/comet/native/target/aarch64-apple-darwin/release/libcomet.dylib" \
     $JVM_TARGET_DIR/darwin/aarch64/
@@ -188,14 +188,14 @@ echo "Building uber jar and publishing it locally"
 pushd $COMET_HOME_DIR
 
 GIT_HASH=$(git rev-parse --short HEAD)
-LOCAL_REPO=$(mktemp -d /tmp/comet-staging-repo-XXXXX)
+#LOCAL_REPO=$(mktemp -d /tmp/comet-staging-repo-XXXXX)
 
-./mvnw  "-Dmaven.repo.local=${LOCAL_REPO}" -P spark-3.4 -P scala-2.12  -DskipTests install
-./mvnw  "-Dmaven.repo.local=${LOCAL_REPO}" -P spark-3.4 -P scala-2.13  -DskipTests install
-./mvnw  "-Dmaven.repo.local=${LOCAL_REPO}" -P spark-3.3 -P scala-2.12  -DskipTests install
-./mvnw  "-Dmaven.repo.local=${LOCAL_REPO}" -P spark-3.3 -P scala-2.13  -DskipTests install
-./mvnw  "-Dmaven.repo.local=${LOCAL_REPO}" -P spark-3.5 -P scala-2.12  -DskipTests install
-./mvnw  "-Dmaven.repo.local=${LOCAL_REPO}" -P spark-3.5 -P scala-2.13  -DskipTests install
+./mvnw  -P spark-3.4 -P scala-2.12  -DskipTests install
+#./mvnw  "-Dmaven.repo.local=${LOCAL_REPO}" -P spark-3.4 -P scala-2.13  -DskipTests install
+#./mvnw  "-Dmaven.repo.local=${LOCAL_REPO}" -P spark-3.3 -P scala-2.12  -DskipTests install
+#./mvnw  "-Dmaven.repo.local=${LOCAL_REPO}" -P spark-3.3 -P scala-2.13  -DskipTests install
+#./mvnw  "-Dmaven.repo.local=${LOCAL_REPO}" -P spark-3.5 -P scala-2.12  -DskipTests install
+#./mvnw  "-Dmaven.repo.local=${LOCAL_REPO}" -P spark-3.5 -P scala-2.13  -DskipTests install
 
 echo "Installed to local repo: ${LOCAL_REPO}"
 

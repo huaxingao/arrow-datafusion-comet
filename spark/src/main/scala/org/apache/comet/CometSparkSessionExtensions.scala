@@ -91,6 +91,10 @@ class CometSparkSessionExtensions
 
   case class CometScanRule(session: SparkSession) extends Rule[SparkPlan] {
     override def apply(plan: SparkPlan): SparkPlan = {
+      // scalastyle:off
+      println("Huaxin debug:  isCometEnabled " + isCometEnabled(conf))
+      println("Huaxin debug:  isCometScanEnabled " + isCometScanEnabled(conf))
+      // scalastyle:on
       if (!isCometEnabled(conf) || !isCometScanEnabled(conf)) {
         if (!isCometEnabled(conf)) {
           withInfo(plan, "Comet is not enabled")
@@ -162,6 +166,9 @@ class CometSparkSessionExtensions
               case s: SupportsComet
                   if s.isCometEnabled &&
                     CometBatchScanExec.isSchemaSupported(scanExec.scan.readSchema()) =>
+                // scalastyle:off
+                println("Huaxin debug: iceberg scan")
+                // scalastyle:on
                 logInfo(s"Comet extension enabled for ${scanExec.scan.getClass.getSimpleName}")
                 // When reading from Iceberg, we automatically enable type promotion
                 SQLConf.get.setConfString(COMET_SCHEMA_EVOLUTION_ENABLED.key, "true")
