@@ -20,7 +20,7 @@
 #[macro_export]
 macro_rules! hash_array {
     ($array_type: ident, $column: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
+        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
         if array.null_count() == 0 {
             for (i, hash) in $hashes.iter_mut().enumerate() {
                 *hash = $hash_method(&array.value(i), *hash);
@@ -38,7 +38,7 @@ macro_rules! hash_array {
 #[macro_export]
 macro_rules! hash_array_boolean {
     ($array_type: ident, $column: ident, $hash_input_type: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
+        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array_boolean: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
         if array.null_count() == 0 {
             for (i, hash) in $hashes.iter_mut().enumerate() {
                 *hash = $hash_method($hash_input_type::from(array.value(i)).to_le_bytes(), *hash);
@@ -57,7 +57,7 @@ macro_rules! hash_array_boolean {
 #[macro_export]
 macro_rules! hash_array_primitive {
     ($array_type: ident, $column: ident, $ty: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
+        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array_primitive: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
         let values = array.values();
 
         if array.null_count() == 0 {
@@ -77,7 +77,7 @@ macro_rules! hash_array_primitive {
 #[macro_export]
 macro_rules! hash_array_primitive_float {
     ($array_type: ident, $column: ident, $ty: ident, $ty2: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
+        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array_primitive_float: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
         let values = array.values();
 
         if array.null_count() == 0 {
@@ -107,17 +107,17 @@ macro_rules! hash_array_primitive_float {
 #[macro_export]
 macro_rules! hash_array_small_decimal {
     ($array_type:ident, $column: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
+        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array_small_decimal: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
 
         if array.null_count() == 0 {
             for (i, hash) in $hashes.iter_mut().enumerate() {
-                *hash = $hash_method(i64::try_from(array.value(i)).unwrap().to_le_bytes(), *hash);
+                *hash = $hash_method(i64::try_from(array.value(i)).expect(format!("Huaxin debug: hash_array_small_decimal: failed to cast value {:?} to i64 in column {:?} ", array.value(i), $column).as_str()).to_le_bytes(), *hash);
             }
         } else {
             for (i, hash) in $hashes.iter_mut().enumerate() {
                 if !array.is_null(i) {
                     *hash =
-                        $hash_method(i64::try_from(array.value(i)).unwrap().to_le_bytes(), *hash);
+                        $hash_method(i64::try_from(array.value(i)).expect(format!("Huaxin debug: hash_array_small_decimal (nullable): failed to cast value {:?} to i64 in column {:?} ", array.value(i), $column).as_str()).to_le_bytes(), *hash);
                 }
             }
         }
@@ -127,7 +127,7 @@ macro_rules! hash_array_small_decimal {
 #[macro_export]
 macro_rules! hash_array_decimal {
     ($array_type:ident, $column: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
+        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array_decimal: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
 
         if array.null_count() == 0 {
             for (i, hash) in $hashes.iter_mut().enumerate() {

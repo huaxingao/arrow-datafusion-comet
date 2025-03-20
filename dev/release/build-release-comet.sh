@@ -61,8 +61,8 @@ trap cleanup SIGINT SIGTERM EXIT
 
 CLEANUP=1
 
-REPO="https://github.com/apache/datafusion-comet.git"
-BRANCH="release"
+REPO="https://github.com/huaxingao/arrow-datafusion-comet.git"
+BRANCH="summit"
 MACOS_SDK=
 HAS_MACOS_SDK="false"
 IMGTAG=latest
