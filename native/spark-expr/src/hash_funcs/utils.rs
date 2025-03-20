@@ -20,7 +20,7 @@
 #[macro_export]
 macro_rules! hash_array {
     ($array_type: ident, $column: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
+        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
         if array.null_count() == 0 {
             for (i, hash) in $hashes.iter_mut().enumerate() {
                 *hash = $hash_method(&array.value(i), *hash);
@@ -38,7 +38,7 @@ macro_rules! hash_array {
 #[macro_export]
 macro_rules! hash_array_boolean {
     ($array_type: ident, $column: ident, $hash_input_type: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array_boolean: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
+        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
         if array.null_count() == 0 {
             for (i, hash) in $hashes.iter_mut().enumerate() {
                 *hash = $hash_method($hash_input_type::from(array.value(i)).to_le_bytes(), *hash);
@@ -57,7 +57,7 @@ macro_rules! hash_array_boolean {
 #[macro_export]
 macro_rules! hash_array_primitive {
     ($array_type: ident, $column: ident, $ty: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array_primitive: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
+        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
         let values = array.values();
 
         if array.null_count() == 0 {
@@ -77,7 +77,7 @@ macro_rules! hash_array_primitive {
 #[macro_export]
 macro_rules! hash_array_primitive_float {
     ($array_type: ident, $column: ident, $ty: ident, $ty2: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array_primitive_float: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
+        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
         let values = array.values();
 
         if array.null_count() == 0 {
@@ -107,17 +107,17 @@ macro_rules! hash_array_primitive_float {
 #[macro_export]
 macro_rules! hash_array_small_decimal {
     ($array_type:ident, $column: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array_small_decimal: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
+        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
 
         if array.null_count() == 0 {
             for (i, hash) in $hashes.iter_mut().enumerate() {
-                *hash = $hash_method(i64::try_from(array.value(i)).expect(format!("Huaxin debug: hash_array_small_decimal: failed to cast value {:?} to i64 in column {:?} ", array.value(i), $column).as_str()).to_le_bytes(), *hash);
+                *hash = $hash_method(i64::try_from(array.value(i)).unwrap().to_le_bytes(), *hash);
             }
         } else {
             for (i, hash) in $hashes.iter_mut().enumerate() {
                 if !array.is_null(i) {
                     *hash =
-                        $hash_method(i64::try_from(array.value(i)).expect(format!("Huaxin debug: hash_array_small_decimal (nullable): failed to cast value {:?} to i64 in column {:?} ", array.value(i), $column).as_str()).to_le_bytes(), *hash);
+                        $hash_method(i64::try_from(array.value(i)).unwrap().to_le_bytes(), *hash);
                 }
             }
         }
@@ -127,7 +127,7 @@ macro_rules! hash_array_small_decimal {
 #[macro_export]
 macro_rules! hash_array_decimal {
     ($array_type:ident, $column: ident, $hashes: ident, $hash_method: ident) => {
-        let array = $column.as_any().downcast_ref::<$array_type>().expect(format!("Huaxin debug: hash_array_decimal: failed to downcast {:?} column  to {}", $column, std::any::type_name::<$array_type>()).as_str());
+        let array = $column.as_any().downcast_ref::<$array_type>().unwrap();
 
         if array.null_count() == 0 {
             for (i, hash) in $hashes.iter_mut().enumerate() {
@@ -296,9 +296,9 @@ macro_rules! create_hashes_internal {
                 }
                 // Apache Spark: if it's a small decimal, i.e. precision <= 18, turn it into long and hash it.
                 // Else, turn it into bytes and hash it.
-                // DataType::Decimal128(precision, _) if *precision <= 18 => {
-                //     $crate::hash_array_small_decimal!(Decimal128Array, col, $hashes_buffer, $hash_method);
-                // }
+                DataType::Decimal128(precision, _) if *precision <= 18 => {
+                    $crate::hash_array_small_decimal!(Decimal128Array, col, $hashes_buffer, $hash_method);
+                }
                 DataType::Decimal128(_, _) => {
                     $crate::hash_array_decimal!(Decimal128Array, col, $hashes_buffer, $hash_method);
                 }
@@ -356,7 +356,6 @@ macro_rules! create_hashes_internal {
                         )?;
                     }
                     _ => {
-                        println!("Huaxin debug: Unsupported dictionary type in hasher : {:?}", col);
                         return Err(DataFusionError::Internal(format!(
                             "Unsupported dictionary type in hasher hashing: {}",
                             col.data_type(),
@@ -365,7 +364,6 @@ macro_rules! create_hashes_internal {
                 },
                 _ => {
                     // This is internal because we should have caught this before.
-                    println!("Huaxin debug: Unsupported data type in hasher : {:?}", col);
                     return Err(DataFusionError::Internal(format!(
                         "Unsupported data type in hasher: {}",
                         col.data_type()
