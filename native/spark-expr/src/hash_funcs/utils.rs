@@ -296,9 +296,9 @@ macro_rules! create_hashes_internal {
                 }
                 // Apache Spark: if it's a small decimal, i.e. precision <= 18, turn it into long and hash it.
                 // Else, turn it into bytes and hash it.
-                DataType::Decimal128(precision, _) if *precision <= 18 => {
-                    $crate::hash_array_small_decimal!(Decimal128Array, col, $hashes_buffer, $hash_method);
-                }
+                // DataType::Decimal128(precision, _) if *precision <= 18 => {
+                //     $crate::hash_array_small_decimal!(Decimal128Array, col, $hashes_buffer, $hash_method);
+                // }
                 DataType::Decimal128(_, _) => {
                     $crate::hash_array_decimal!(Decimal128Array, col, $hashes_buffer, $hash_method);
                 }
